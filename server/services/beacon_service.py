@@ -22,7 +22,10 @@ def handle_beacon_request(client_id):
     
     task_commands = []
     for task in tasks:
-        task_commands.append(task.command)
+        task_commands.append({
+            "mode": task.command_mode,
+            "resource": task.command
+        })
         
         if task.repeat_interval:
             task.next_execution = datetime.utcnow() + timedelta(seconds=task.repeat_interval)
@@ -34,5 +37,4 @@ def handle_beacon_request(client_id):
     
     db.session.commit()
 
-    response = {"commands": task_commands}
-    return response
+    return task_commands
