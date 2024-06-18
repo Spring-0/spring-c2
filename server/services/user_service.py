@@ -3,9 +3,7 @@ from server.models import User, Task
 from datetime import datetime, timedelta
 from server.task_modes import TaskMode
 
-def register_user(username, client_id):
-    status = "Successfully registered." # Debugging purposes
-    
+def register_user(username, client_id, ip_addr, op_system):
     # Dummy Task
     dummy_command = "Write-Host -ForegroundColor Red '####################'"
     dummy_task = Task(
@@ -18,13 +16,14 @@ def register_user(username, client_id):
     )
     db.session.add(dummy_task)
     
-    if User.query.filter_by(client_id=client_id).first():
-        status = "Already registered, reconnecting..."
-    else:    
+    if not User.query.filter_by(client_id=client_id).first(): 
         new_user = User(username=username, client_id=client_id)
+        new_user.ip_address = ip_addr
+        new_user.op_system = op_system
+        
         db.session.add(new_user)
         # db.session.commit()
         
     db.session.commit()
     
-    return {"status": status} # Debugging purposes
+    return {"status": "SUCCESS", "client_id": client_id}

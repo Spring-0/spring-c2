@@ -3,6 +3,7 @@ from .models import User
 from . import db
 from server.services.user_service import register_user
 from server.services.beacon_service import handle_beacon_request
+import uuid
 
 bp = Blueprint("routes", __name__)
 
@@ -11,8 +12,12 @@ def register():
     data = request.json
     username = data.get("username")
     client_id = data.get("client_id")
+    op_system = data.get("op_system")
     
-    response = register_user(username, client_id)
+    if not client_id:
+        client_id = str(uuid.uuid4())
+    
+    response = register_user(username, client_id, request.remote_addr, op_system)
     return jsonify(response)
 
 @bp.route('/beacon', methods=['POST'])
