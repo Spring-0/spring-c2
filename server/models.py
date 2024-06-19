@@ -20,3 +20,5 @@ class Task(db.Model):
     repeat_interval = db.Column(db.Integer)                              # Interval in seconds to repeat command execution (if repeating)
     run_once = db.Column(db.Boolean, default=False)                      # Flag to determine if task should run once
     next_execution = db.Column(db.DateTime, default=datetime.utcnow())   # Next scheduled execution
+    target_path = db.Column(db.String(255), nullable=True)               # The path the file will be written to on the client if in FDL mode
+    execute = db.Column(db.Boolean, default=False)

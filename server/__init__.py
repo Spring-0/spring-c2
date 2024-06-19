@@ -1,12 +1,13 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from server.config import Config
 
 db = SQLAlchemy()
 
 def create_server():
     server = Flask(__name__)
-    server.config.from_object("server.config.Config")
     
+    apply_server_configuration(server)
     db.init_app(server)
     
     with server.app_context():
@@ -16,3 +17,8 @@ def create_server():
         db.create_all()
         
     return server
+
+def apply_server_configuration(server):
+    server.config["SQLALCHEMY_DATABASE_URI"] = Config.get("database", "uri")
+    server.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    

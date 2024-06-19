@@ -1,0 +1,12 @@
+
+[server]
+host = "localhost"
+port = 9393
+
+[database]
+uri = "sqlite:///spring-c2.db"
+
+# The base directory where files retrieved using the UPL operation are saved locally (server side)
+[upload]
+base_upload_path = "C:/Users/Jac/Desktop/spring-c2-downloads/"
+append_identifier_for_overlapping_names = false
