@@ -13,6 +13,8 @@ beaconService = BeaconService()
 bp = Blueprint("routes", __name__)
 @bp.route("/register", methods=["POST"])
 def register():
+    new_client_registration = False
+    
     data = request.json
     username = data.get("username")
     client_id = data.get("client_id")
@@ -20,7 +22,9 @@ def register():
     
     if not client_id:
         client_id = str(uuid.uuid4())
-    response = register_user(username, client_id, request.remote_addr, op_system)
+        new_client_registration = True
+        
+    response = register_user(username, client_id, request.remote_addr, op_system, new_client_registration)
     return jsonify(response)
 
 @bp.route('/beacon', methods=['POST'])
@@ -53,7 +57,6 @@ def upload():
     upl_key = data["fup_key"]
     
     if not BeaconService.verify_otk(client_id, upl_key):
-        # TODO: Implement logging to database with request details
         Logger.log(client_id, LogLevel.ALERT.value, "Client made unverified request to '/upload' endpoint")
         print("[!] Recieved unauthorized call to /upload")
         return

