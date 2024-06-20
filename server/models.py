@@ -25,7 +25,7 @@ class Task(db.Model):
     
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
     client_id = db.Column(db.String(36), nullable=True)
     log_level = db.Column(db.String(20), nullable=False)
     message = db.Column(db.String(1024), nullable=False)

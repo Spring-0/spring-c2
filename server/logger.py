@@ -1,6 +1,7 @@
 from . import db
 from server.models import Log
 from enum import Enum
+from datetime import datetime
 
 class LogLevel(Enum):
     INFO = "info"       # General operational messages
@@ -12,6 +13,6 @@ class LogLevel(Enum):
 class Logger():
     @staticmethod
     def log(client_id, log_level, message):
-        log_entry = Log(client_id=client_id, log_level=log_level, message=message)
+        log_entry = Log(client_id=client_id, log_level=log_level, message=message, timestamp=datetime.utcnow())
         db.session.add(log_entry)
         db.session.commit()
