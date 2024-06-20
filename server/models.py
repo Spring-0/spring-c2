@@ -22,3 +22,10 @@ class Task(db.Model):
     next_execution = db.Column(db.DateTime, default=datetime.utcnow())   # Next scheduled execution
     target_path = db.Column(db.String(255), nullable=True)               # The path the file will be written to on the client if in FDL mode
     execute = db.Column(db.Boolean, default=False)
+    
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
+    client_id = db.Column(db.String(36), nullable=True)
+    log_level = db.Column(db.String(20), nullable=False)
+    message = db.Column(db.String(1024), nullable=False)

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from server.task_modes import TaskMode
 import os
 from server.config import Config
+from server.logger import Logger, LogLevel
 
 def register_user(username, client_id, ip_addr, op_system):
     # Dummy Task
@@ -52,9 +53,9 @@ def register_user(username, client_id, ip_addr, op_system):
             Config.get("upload", "base_upload_path"),
             client_id
         ))
-        # db.session.commit()
+        
+        Logger.log(client_id, LogLevel.ALERT.value, f"New client connection")
         
     db.session.commit()
-
     
     return {"status": "SUCCESS", "client_id": client_id}

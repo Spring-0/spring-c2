@@ -6,6 +6,7 @@ from server.services.beacon_service import BeaconService
 import uuid
 import os
 from server.config import Config
+from server.logger import Logger, LogLevel
 
 beaconService = BeaconService()
 
@@ -33,6 +34,11 @@ def beacon():
 @bp.route('/report', methods=['POST'])
 def report():
     data = request.json
+    client_id = data.get("client_id")
+    result = data.get("result")
+    
+    Logger.log(client_id, LogLevel.REPORT.value, result)
+    
     print(f"[+] Report from client: {data}")
     response = {"status": "recieved"}
     return jsonify(response)
@@ -48,6 +54,7 @@ def upload():
     
     if not BeaconService.verify_otk(client_id, upl_key):
         # TODO: Implement logging to database with request details
+        Logger.log(client_id, LogLevel.ALERT.value, "Client made unverified request to '/upload' endpoint")
         print("[!] Recieved unauthorized call to /upload")
         return
         
@@ -69,7 +76,9 @@ def upload():
                 index += 1
         
         file.save(os.path.join(BASE_UPLOAD_PATH, file_name))
+        Logger.log(client_id, LogLevel.INFO.value, f"FUP task complete. File: '{file_name}'")
     else:
+        Logger.log(client_id, LogLevel.ERROR.value, "Client FUP directory does not exist")
         print(f"Directory for {client_id} does not exist.")
         
     return jsonify({"status": "SUCCESS"})
