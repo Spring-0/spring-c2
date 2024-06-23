@@ -7,6 +7,7 @@ import uuid
 import os
 from server.config import Config
 from server.logger import Logger, LogLevel
+import json
 
 beaconService = BeaconService()
 
@@ -41,7 +42,7 @@ def report():
     client_id = data.get("client_id")
     result = data.get("result")
     
-    Logger.log(client_id, LogLevel.REPORT.value, result)
+    Logger.log(client_id, LogLevel.REPORT.value, json.dumps(result))
     
     print(f"[+] Report from client: {data}")
     response = {"status": "recieved"}
