@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .models import User
+from .models import User, Task, Log
 from . import db
 from server.services.user_service import register_user
 from server.services.beacon_service import BeaconService
@@ -87,5 +87,43 @@ def upload():
         
     return jsonify({"status": "SUCCESS"})
         
-    
-    
+
+"""
+User Interface API
+"""
+
+@bp.route("/api/write-task", methods=["POST"])
+def write_task():
+    pass
+
+@bp.route("/api/get-tasks", methods=["GET"])
+def get_tasks():
+    tasks = Task.query.all()
+    task_list = []
+    for task in tasks:
+        task_data = {
+            "id": task.id,
+            "client_id": task.client_id,
+            "command": task.command,
+            "command_mode": task.command_mode,
+            "repeat_interval": task.repeat_interval,
+            "run_once": task.run_once,
+            "next_execution": task.next_execution.isoformat() if task.next_execution else None,
+            "target_path": task.target_path,
+            "execute": task.execute,
+        }
+        task_list.append(task_data)
+        
+    return jsonify(task_list)
+
+@bp.route("/api/get-logs", methods=["GET"])
+def get_logs():
+    return ""
+
+@bp.route("/api/get-users", methods=["GET"])
+def get_users():
+    pass
+
+@bp.route("/api/get-reports", methods=["GET"])
+def get_reports():
+    pass
