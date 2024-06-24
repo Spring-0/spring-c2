@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from server.config import Config
+from flask_cors import CORS
 
 db = SQLAlchemy()
 
@@ -13,6 +14,7 @@ def create_server():
     with server.app_context():
         from . import routes
         server.register_blueprint(routes.bp)
+        CORS(server)
         
         db.create_all()
         
