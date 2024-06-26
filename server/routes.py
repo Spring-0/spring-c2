@@ -8,6 +8,7 @@ import os
 from server.config import Config
 from server.logger import Logger, LogLevel
 import json
+from datetime import datetime, timedelta
 
 beaconService = BeaconService()
 
@@ -94,7 +95,47 @@ User Interface API
 
 @bp.route("/api/write-task", methods=["POST"])
 def write_task():
-    pass
+    data = request.json
+    
+    print(data)
+    
+    client_id = data.get("client_id")
+    command = data.get("command")
+    command_mode = data.get("command_mode")
+    repeat_interval = data.get("repeat_interval")
+    run_once = data.get("run_once")
+    target_path = data.get("target_path")
+    execute = data.get("execute")
+    next_execution = datetime.utcnow()
+    
+    if not client_id or not command or not command_mode:
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    new_task = Task(
+        client_id=client_id,
+        command=command,
+        command_mode=command_mode,
+        repeat_interval=repeat_interval,
+        run_once=run_once,
+        target_path=target_path,
+        execute=execute,
+        next_execution=next_execution
+    )
+    
+    db.session.add(new_task)
+    db.session.commit()
+    
+    return jsonify({"status": "Task created", "task": {
+        "id": new_task.id,
+        "client_id": new_task.client_id,
+        "command": new_task.command,
+        "command_mode": new_task.command_mode,
+        "repeat_interval": new_task.repeat_interval,
+        "run_once": new_task.run_once,
+        "target_path": new_task.target_path,
+        "execute": new_task.execute,
+        "next_execution": new_task.next_execution.isoformat()
+    }}), 201
 
 @bp.route("/api/get-tasks", methods=["GET"])
 def get_tasks():
@@ -115,6 +156,15 @@ def get_tasks():
         task_list.append(task_data)
         
     return jsonify(task_list)
+
+@bp.route("/api/delete-task/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    task = Task.query.get(task_id)
+    if task:
+        db.session.delete(task)
+        db.session.commit()
+        return jsonify({"status": "deleted"})
+    return 404
 
 @bp.route("/api/get-logs", methods=["GET"])
 def get_logs():

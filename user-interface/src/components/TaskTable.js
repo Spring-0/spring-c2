@@ -1,7 +1,8 @@
-import React from 'react'
-import { useTable, useSortBy, useFilters, useGlobalFilter } from 'react-table'
+import React from 'react';
+import { useTable, useSortBy, useFilters, useGlobalFilter } from 'react-table';
+import { AiFillDelete } from 'react-icons/ai';
 
-function TaskTable({ columns, data }) {
+function TaskTable({ columns, data, onDelete }) {
     const {
         getTableProps,
         getTableBodyProps,
@@ -30,7 +31,6 @@ function TaskTable({ columns, data }) {
                 value={globalFilter || ""}
                 onChange={e => setGlobalFilter(e.target.value)}
             />
-
             <table {...getTableProps()} className="table-auto min-w-full bg-white border-collapse border border-gray-300">
                 <thead>
                     {headerGroups.map(headerGroup => (
@@ -46,6 +46,9 @@ function TaskTable({ columns, data }) {
                                     </span>
                                 </th>
                             ))}
+                            <th className="px-6 py-3 bg-gray-100 text-xs leading-4 text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
                         </tr>
                     ))}
                 </thead>
@@ -59,13 +62,21 @@ function TaskTable({ columns, data }) {
                                         {typeof cell.value === "boolean" ? (cell.value ? "True" : "False") : cell.render("Cell")}
                                     </td>
                                 ))}
+                                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
+                                    <button
+                                        onClick={() => onDelete(row.original.id)}
+                                        className="text-red-600 hover:text-red-900"
+                                    >
+                                        <AiFillDelete />
+                                    </button>
+                                </td>
                             </tr>
                         );
                     })}
                 </tbody>
             </table>
         </div>
-    )
+    );
 }
 
 export default TaskTable;
